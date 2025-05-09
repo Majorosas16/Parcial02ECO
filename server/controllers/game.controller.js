@@ -13,7 +13,7 @@ const joinGame = async (req, res) => {
     const gameData = playersDb.getGameData();
 
     emitEvent("userJoined", gameData);
-    emitEvent("nowPlayers", gameData.players); // envía toda la lista
+    emitEvent("nowPlayers", gameData.players);
 
     res.status(200).json({ success: true, players: gameData.players });
   } catch (err) {
@@ -95,32 +95,35 @@ const selectPolo = async (req, res) => {
   try {
     const { socketId, poloId } = req.body;
 
-    const marco = playersDb.findPlayerById(socketId); // quien atrapó
-    const polo = playersDb.findPlayerById(poloId); // quien fue atrapado
+    const marco = playersDb.findPlayerById(socketId); // Jugador actual
+    const polo = playersDb.findPlayerById(poloId); // El polo que fue atrapado o seleccionado por marco
+    // marco= { id: 4432, name: "Luis", role: "marco" }
+    // polo= { id: 4432, name: "Marta", role: "polo-especial" }
+
     const allPlayers = playersDb.getAllPlayers();
 
     let message = "";
 
     if (polo.role === "polo-especial") {
       // Si atrapó a un polo especial
-      playersDb.updateScore(marco.id, 50); // marco suma +50
-      playersDb.updateScore(polo.id, -10); // polo especial atrapado pierde -10
+      playersDb.updateScore(marco.id, 50); // suma +50
+      playersDb.updateScore(polo.id, -10); // pierde -10
 
       message = `¡El marco ${marco.nickname} ha ganado! ${polo.nickname} fue capturado.`;
     } else {
       // Marco no atrapó a un polo especial
-      playersDb.updateScore(marco.id, -10); // marco pierde -10
+      playersDb.updateScore(marco.id, -10); // pierde -10
 
-      // Cada polo especial que sobrevivió gana +10
       const polosEspeciales = playersDb.findPlayersByRole("polo-especial");
+      // polosEspeciales= [{ id: 4432, name: "Luis", role: "polo-especial" }]
+
       polosEspeciales.forEach((p) => {
-        playersDb.updateScore(p.id, 10);
+        playersDb.updateScore(p.id, 10); // gana 10
       });
 
       message = `¡El marco ${marco.nickname} ha perdido! No atrapó al polo especial.`;
     }
 
-    // Notificar a todos el resultado del juego
     allPlayers.forEach((player) => {
       emitToSpecificClient(player.id, "notifyGameOver", { message });
     });
@@ -160,12 +163,11 @@ const restartGame = async (req, res) => {
   }
 };
 
-
 module.exports = {
   joinGame,
   startGame,
   notifyMarco,
   notifyPolo,
   selectPolo,
-  restartGame
+  restartGame,
 };

@@ -26,9 +26,7 @@ export default function renderHomeScreen() {
       return;
     }
 
-    // Instead of emitting, make an API request
     const result = await makeRequest("/api/game/join", "POST", {
-    // result = success: true, players: gameData.players
       nickname: userName,
       socketId: socket.id,
     });

@@ -19,9 +19,7 @@ export default function renderScreen2(data) {
       </ol>
 
       <button id="sort-alpha">Ordenar alfabéticamente</button>
-      <button id="restart-game">Reiniciar juego</button>
       <button id="go-screen-back">Volver al inicio</button>
-      <button id="restart-game">Reiniciar juego</button>
 
     </div>
   `;
@@ -36,18 +34,6 @@ export default function renderScreen2(data) {
     );
     renderRanking(sorted);
   });
-
-  document
-    .getElementById("restart-game")
-    .addEventListener("click", async () => {
-      try {
-        await fetch("/restart-game", {
-          method: "POST",
-        });
-      } catch (err) {
-        console.error("Error reiniciando el juego:", err);
-      }
-    });
 
   function renderRanking(players) {
     const rankingList = document.getElementById("ranking-list");

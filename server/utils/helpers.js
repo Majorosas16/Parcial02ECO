@@ -15,10 +15,10 @@ const assignRoles = (players) => {
   return shuffled 
 
   // [
-//   { name: "Luis", role: "marco" },
-//   { name: "Marta", role: "polo-especial" },
-//   { name: "Carlos", role: "polo" },
-//   { name: "Ana", role: "polo" }
+//   { role: "marco" },
+//   { role: "polo-especial" },
+//   { role: "polo" },
+//   { role: "polo" }
 // ]
 }
 

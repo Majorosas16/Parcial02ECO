@@ -15,7 +15,8 @@ export default function renderScreen1() {
   const nowPlayers = document.getElementById("nowPlayers");
 
   socket.on("nowPlayers", (players) => {
-    nowPlayers.innerHTML = ""; // Limpiar la lista antes de renderizar
+    nowPlayers.innerHTML = ""; 
+    
     players.forEach((player) => {
       nowPlayers.innerHTML += `
         <p>${player.nickname} | Rol: ${

@@ -11,6 +11,7 @@ function clearScripts() {
 
 
 let route = { path: "/", data: {} };
+
 renderRoute(route);
 
 function renderRoute(currentRoute) {
