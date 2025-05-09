@@ -91,35 +91,6 @@ const notifyPolo = async (req, res) => {
   }
 };
 
-// const selectPolo = async (req, res) => {
-//   try {
-//     const { socketId, poloId } = req.body;
-
-//     const myUser = playersDb.findPlayerById(socketId);
-//     const poloSelected = playersDb.findPlayerById(poloId);
-//     const allPlayers = playersDb.getAllPlayers();
-
-//     if (poloSelected.role === "polo-especial") {
-//       // Notify all players that the game is over
-//       allPlayers.forEach((player) => {
-//         emitToSpecificClient(player.id, "notifyGameOver", {
-//           message: `El marco ${myUser.nickname} ha ganado, ${poloSelected.nickname} ha sido capturado`,
-//         });
-//       });
-//     } else {
-//       allPlayers.forEach((player) => {
-//         emitToSpecificClient(player.id, "notifyGameOver", {
-//           message: `El marco ${myUser.nickname} ha perdido`,
-//         });
-//       });
-//     }
-
-//     res.status(200).json({ success: true });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// };
-
 const selectPolo = async (req, res) => {
   try {
     const { socketId, poloId } = req.body;
@@ -157,6 +128,19 @@ const selectPolo = async (req, res) => {
     // Enviar jugadores actualizados con sus puntajes al frontend
     const updatedGameData = playersDb.getGameData();
     emitEvent("nowPlayers", updatedGameData.players);
+
+    // Verifica si alguien ya ganó
+    const winner = allPlayers.find((p) => p.score >= 100);
+
+    if (winner) {
+      // Ordenar por puntaje de mayor a menor
+      const rankedPlayers = [...allPlayers].sort((a, b) => b.score - a.score);
+
+      emitEvent("gameWinner", {
+        winner,
+        rankedPlayers,
+      });
+    }
 
     res.status(200).json({ success: true });
   } catch (err) {

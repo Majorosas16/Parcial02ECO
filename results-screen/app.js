@@ -3,6 +3,10 @@ import renderScreen2 from "./screens/screen2.js";
 
 const socket = io("/", { path: "/real-time" });
 
+socket.on("gameWinner", (data) => {
+  navigateTo("/screen2", data);
+});
+
 function clearScripts() {
   document.getElementById("app").innerHTML = "";
 }
