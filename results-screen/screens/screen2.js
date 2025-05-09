@@ -37,4 +37,5 @@ export default function renderScreen2(data) {
       )
       .join("");
   }
+  
 }
