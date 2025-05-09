@@ -7,12 +7,13 @@ const {
 const joinGame = async (req, res) => {
   try {
     const { nickname, socketId } = req.body;
-    
+
     playersDb.addPlayer(nickname, socketId);
 
     const gameData = playersDb.getGameData();
-    
+
     emitEvent("userJoined", gameData);
+    emitEvent("nowPlayers", gameData.players); // envía toda la lista
 
     res.status(200).json({ success: true, players: gameData.players });
   } catch (err) {
@@ -22,13 +23,13 @@ const joinGame = async (req, res) => {
 
 const startGame = async (req, res) => {
   try {
-    const playersWithRoles = playersDb.assignPlayerRoles(); 
-// [
-//   { id: 4432,  name: "Luis", role: "marco" },
-//   { id: 4432, name: "Marta", role: "polo-especial" },
-//   { id: 4432, name: "Carlos", role: "polo" },
-//   { id: 4432, name: "Ana", role: "polo" }
-// ]
+    const playersWithRoles = playersDb.assignPlayerRoles();
+    // [
+    //   { id: 4432,  name: "Luis", role: "marco" },
+    //   { id: 4432, name: "Marta", role: "polo-especial" },
+    //   { id: 4432, name: "Carlos", role: "polo" },
+    //   { id: 4432, name: "Ana", role: "polo" }
+    // ]
 
     playersWithRoles.forEach((player) => {
       emitToSpecificClient(player.id, "startGame", player.role);
@@ -73,7 +74,7 @@ const notifyPolo = async (req, res) => {
 
     const rolesToNotify = playersDb.findPlayersByRole("marco");
 
-        // rolesToNotify= [
+    // rolesToNotify= [
     //   { id: 43432, name: "Luis", role: "marco" },
     // ]
 
@@ -90,28 +91,72 @@ const notifyPolo = async (req, res) => {
   }
 };
 
+// const selectPolo = async (req, res) => {
+//   try {
+//     const { socketId, poloId } = req.body;
+
+//     const myUser = playersDb.findPlayerById(socketId);
+//     const poloSelected = playersDb.findPlayerById(poloId);
+//     const allPlayers = playersDb.getAllPlayers();
+
+//     if (poloSelected.role === "polo-especial") {
+//       // Notify all players that the game is over
+//       allPlayers.forEach((player) => {
+//         emitToSpecificClient(player.id, "notifyGameOver", {
+//           message: `El marco ${myUser.nickname} ha ganado, ${poloSelected.nickname} ha sido capturado`,
+//         });
+//       });
+//     } else {
+//       allPlayers.forEach((player) => {
+//         emitToSpecificClient(player.id, "notifyGameOver", {
+//           message: `El marco ${myUser.nickname} ha perdido`,
+//         });
+//       });
+//     }
+
+//     res.status(200).json({ success: true });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
+
 const selectPolo = async (req, res) => {
   try {
     const { socketId, poloId } = req.body;
 
-    const myUser = playersDb.findPlayerById(socketId);
-    const poloSelected = playersDb.findPlayerById(poloId);
+    const marco = playersDb.findPlayerById(socketId); // quien atrapó
+    const polo = playersDb.findPlayerById(poloId); // quien fue atrapado
     const allPlayers = playersDb.getAllPlayers();
 
-    if (poloSelected.role === "polo-especial") {
-      // Notify all players that the game is over
-      allPlayers.forEach((player) => {
-        emitToSpecificClient(player.id, "notifyGameOver", {
-          message: `El marco ${myUser.nickname} ha ganado, ${poloSelected.nickname} ha sido capturado`,
-        });
-      });
+    let message = "";
+
+    if (polo.role === "polo-especial") {
+      // Si atrapó a un polo especial
+      playersDb.updateScore(marco.id, 50); // marco suma +50
+      playersDb.updateScore(polo.id, -10); // polo especial atrapado pierde -10
+
+      message = `¡El marco ${marco.nickname} ha ganado! ${polo.nickname} fue capturado.`;
     } else {
-      allPlayers.forEach((player) => {
-        emitToSpecificClient(player.id, "notifyGameOver", {
-          message: `El marco ${myUser.nickname} ha perdido`,
-        });
+      // Marco no atrapó a un polo especial
+      playersDb.updateScore(marco.id, -10); // marco pierde -10
+
+      // Cada polo especial que sobrevivió gana +10
+      const polosEspeciales = playersDb.findPlayersByRole("polo-especial");
+      polosEspeciales.forEach((p) => {
+        playersDb.updateScore(p.id, 10);
       });
+
+      message = `¡El marco ${marco.nickname} ha perdido! No atrapó al polo especial.`;
     }
+
+    // Notificar a todos el resultado del juego
+    allPlayers.forEach((player) => {
+      emitToSpecificClient(player.id, "notifyGameOver", { message });
+    });
+
+    // Enviar jugadores actualizados con sus puntajes al frontend
+    const updatedGameData = playersDb.getGameData();
+    emitEvent("nowPlayers", updatedGameData.players);
 
     res.status(200).json({ success: true });
   } catch (err) {
