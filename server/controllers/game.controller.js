@@ -150,15 +150,15 @@ const selectPolo = async (req, res) => {
   }
 };
 
-const restartGame = async (req, res) => {
-  try {
-    emitEvent("gameRestarted"); // Avisamos a todos que el juego fue reiniciado
+// const restartGame = async (req, res) => {
+//   try {
+//     emitEvent("gameRestarted"); // Avisamos a todos que el juego fue reiniciado
 
-    res.status(200).json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+//     res.status(200).json({ success: true });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// };
 
 module.exports = {
   joinGame,
@@ -166,5 +166,5 @@ module.exports = {
   notifyMarco,
   notifyPolo,
   selectPolo,
-  restartGame,
+  // restartGame,
 };
