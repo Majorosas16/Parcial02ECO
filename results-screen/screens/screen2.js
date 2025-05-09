@@ -1,32 +1,25 @@
-import { navigateTo, makeRequestScreen2 } from "../app.js";
-
 export default function renderScreen2(data) {
   const app = document.getElementById("app");
 
   app.innerHTML = `
     <div id="screen2">
-      <h2>🏆 ¡Ganador: ${data?.winner?.nickname}!</h2>
-      <p>Obtuvo ${data?.winner?.score} puntos</p>
+      <h2>¡Winner: ${data?.winner?.nickname}!</h2>
+      <p>had ${data?.winner?.score} score</p>
 
       <h3>Ranking:</h3>
-      <ol id="ranking-list">
+      <div id="ranking-list">
         ${data.rankedPlayers
           .map(
             (player, index) =>
-              `<li>${index + 1}. ${player.nickname} (${player.score} pts)</li>`
+              `<p>${index + 1}. ${player.nickname} (${player.score} pts)</p>`
           )
           .join("")}
-      </ol>
+      </div>
 
-      <button id="sort-alpha">Ordenar alfabéticamente</button>
-      <button id="go-screen-back">Volver al inicio</button>
+      <button id="sort-alpha">Click to sort alphabetically</button>
 
     </div>
   `;
-
-  document.getElementById("go-screen-back").addEventListener("click", () => {
-    navigateTo("/");
-  });
 
   document.getElementById("sort-alpha").addEventListener("click", () => {
     const sorted = [...data.rankedPlayers].sort((a, b) =>
@@ -40,7 +33,7 @@ export default function renderScreen2(data) {
     rankingList.innerHTML = players
       .map(
         (player, index) =>
-          `<li>${index + 1}. ${player.nickname} (${player.score} pts)</li>`
+          `<p>${index + 1}. ${player.nickname} (${player.score} pts)</p>`
       )
       .join("");
   }
