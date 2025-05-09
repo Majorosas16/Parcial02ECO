@@ -1,4 +1,4 @@
-import { navigateTo, socket } from "../app.js";
+import { socket } from "../app.js";
 
 export default function renderScreen1() {
   const app = document.getElementById("app");
@@ -14,9 +14,9 @@ export default function renderScreen1() {
 
   const nowPlayers = document.getElementById("nowPlayers");
 
-  socket.on("nowPlayers", (players) => {
-    nowPlayers.innerHTML = ""; 
-    
+  socket.on("atNow", (players) => {
+    nowPlayers.innerHTML = "";
+
     players.forEach((player) => {
       nowPlayers.innerHTML += `
         <p>${player.nickname} | Rol: ${

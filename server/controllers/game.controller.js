@@ -13,7 +13,7 @@ const joinGame = async (req, res) => {
     const gameData = playersDb.getGameData();
 
     emitEvent("userJoined", gameData);
-    emitEvent("nowPlayers", gameData.players);
+    emitEvent("atNow", gameData.players);
 
     res.status(200).json({ success: true, players: gameData.players });
   } catch (err) {
@@ -95,8 +95,8 @@ const selectPolo = async (req, res) => {
   try {
     const { socketId, poloId } = req.body;
 
-    const marco = playersDb.findPlayerById(socketId); // Jugador actual
-    const polo = playersDb.findPlayerById(poloId); // El polo que fue atrapado o seleccionado por marco
+    const actualPlayer = playersDb.findPlayerById(socketId); // Jugador actual
+    const poloSelected = playersDb.findPlayerById(poloId); // El polo que fue atrapado o seleccionado por marco
     // marco= { id: 4432, name: "Luis", role: "marco" }
     // polo= { id: 4432, name: "Marta", role: "polo-especial" }
 
@@ -104,15 +104,15 @@ const selectPolo = async (req, res) => {
 
     let message = "";
 
-    if (polo.role === "polo-especial") {
-      // Si atrapó a un polo especial
-      playersDb.updateScore(marco.id, 50); // suma +50
-      playersDb.updateScore(polo.id, -10); // pierde -10
+    if (poloSelected.role === "polo-especial") {
+      playersDb.updateScore(actualPlayer.id, 50); // suma +50
+      playersDb.updateScore(poloSelected.id, -10); // pierde -10
 
-      message = `¡El marco ${marco.nickname} ha ganado! ${polo.nickname} fue capturado.`;
+      message = `¡El marco ${actualPlayer.nickname} ha ganado! ${poloSelected.nickname} fue capturado.`;
     } else {
-      // Marco no atrapó a un polo especial
-      playersDb.updateScore(marco.id, -10); // pierde -10
+      
+      // Marco no atrapó 
+      playersDb.updateScore(actualPlayer.id, -10); // pierde -10
 
       const polosEspeciales = playersDb.findPlayersByRole("polo-especial");
       // polosEspeciales= [{ id: 4432, name: "Luis", role: "polo-especial" }]
@@ -121,7 +121,7 @@ const selectPolo = async (req, res) => {
         playersDb.updateScore(p.id, 10); // gana 10
       });
 
-      message = `¡El marco ${marco.nickname} ha perdido! No atrapó al polo especial.`;
+      message = `¡El marco ${actualPlayer.nickname} ha perdido! No atrapó al polo especial.`;
     }
 
     allPlayers.forEach((player) => {
@@ -130,13 +130,12 @@ const selectPolo = async (req, res) => {
 
     // Enviar jugadores actualizados con sus puntajes al frontend
     const updatedGameData = playersDb.getGameData();
-    emitEvent("nowPlayers", updatedGameData.players);
+    emitEvent("atNow", updatedGameData.players);
 
-    // Verifica si alguien ya ganó
     const winner = allPlayers.find((p) => p.score >= 100);
 
     if (winner) {
-      // Ordenar por puntaje de mayor a menor
+      // Ordena por puntaje de mayor a menor
       const rankedPlayers = [...allPlayers].sort((a, b) => b.score - a.score);
 
       emitEvent("gameWinner", {
@@ -153,8 +152,6 @@ const selectPolo = async (req, res) => {
 
 const restartGame = async (req, res) => {
   try {
-    playersDb.clearScores(); // Deberás agregar esta función al db si no existe
-
     emitEvent("gameRestarted"); // Avisamos a todos que el juego fue reiniciado
 
     res.status(200).json({ success: true });
