@@ -90,6 +90,13 @@ const updateScore = (socketId, delta) => {
   return null;
 };
 
+function clearScores() {
+  players.forEach((player) => {
+    player.score = 0;
+    player.role = null; // también puedes limpiar el rol si lo deseas
+  });
+}
+
 module.exports = {
   getAllPlayers,
   addPlayer,
@@ -99,4 +106,5 @@ module.exports = {
   getGameData,
   resetGame,
   updateScore,
+  clearScores,
 };

@@ -9,6 +9,7 @@ function clearScripts() {
   document.getElementById("app").innerHTML = "";
 }
 
+
 let route = { path: "/", data: {} };
 renderRoute(route);
 
